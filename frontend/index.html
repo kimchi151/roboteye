@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RobotEye GIF Manager</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <header>
+        <h1>RobotEye GIF Expressions</h1>
+        <p class="tagline">
+          Upload animated GIFs, annotate them with metadata, and download the processed output.
+        </p>
+      </header>
+
+      <section class="card" aria-labelledby="upload-title">
+        <h2 id="upload-title">Upload a GIF</h2>
+        <form id="upload-form">
+          <div class="form-field">
+            <label for="gif-input">GIF file</label>
+            <input type="file" id="gif-input" name="gif" accept="image/gif" required />
+          </div>
+          <div class="preview" id="gif-preview" hidden>
+            <img id="gif-preview-image" alt="GIF preview" />
+          </div>
+          <div class="form-field">
+            <label for="title-input">Title</label>
+            <input type="text" id="title-input" name="title" placeholder="Excited" />
+          </div>
+          <div class="form-field">
+            <label for="description-input">Description</label>
+            <textarea id="description-input" name="description" rows="3" placeholder="Short description"></textarea>
+          </div>
+          <div class="form-field">
+            <label for="tags-input">Tags</label>
+            <input type="text" id="tags-input" name="tags" placeholder="happy, animated" />
+          </div>
+          <button type="submit" class="primary">Upload &amp; Process</button>
+          <p class="status" id="upload-status" role="status"></p>
+        </form>
+      </section>
+
+      <section class="card" aria-labelledby="library-title">
+        <h2 id="library-title">Expression Library</h2>
+        <div id="expressions-empty" class="empty-state" hidden>
+          <p>No expressions yet. Upload a GIF to get started.</p>
+        </div>
+        <ul id="expressions-list" class="expressions"></ul>
+      </section>
+    </main>
+
+    <template id="expression-template">
+      <li class="expression">
+        <div class="expression-preview">
+          <img class="expression-image" alt="Processed GIF preview" />
+        </div>
+        <div class="expression-content">
+          <div class="expression-metadata">
+            <label>
+              Title
+              <input class="metadata-title" type="text" />
+            </label>
+            <label>
+              Description
+              <textarea class="metadata-description" rows="3"></textarea>
+            </label>
+            <label>
+              Tags (comma separated)
+              <input class="metadata-tags" type="text" />
+            </label>
+          </div>
+          <div class="expression-actions">
+            <button class="secondary js-save">Save</button>
+            <button class="danger js-delete">Delete</button>
+            <a class="secondary js-download" target="_blank" rel="noopener">Download</a>
+          </div>
+          <p class="expression-status" role="status"></p>
+        </div>
+      </li>
+    </template>
+
+    <script src="script.js" type="module"></script>
+  </body>
+</html>
