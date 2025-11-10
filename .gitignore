@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+.env
+.venv/
+node_modules/
+*.log
+.DS_Store
+
+# Runtime data
+/data/uploads/
+/data/processed/
+/data/expressions.json
