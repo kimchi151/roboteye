@@ -1,0 +1,26 @@
+#ifndef ROBOTEYE_FRAMES_H
+#define ROBOTEYE_FRAMES_H
+
+#include <stddef.h>
+#include <stdint.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define ROBOTEYE_FRAME_WIDTH 16
+#define ROBOTEYE_FRAME_HEIGHT 16
+#define ROBOTEYE_FRAME_BYTES ((ROBOTEYE_FRAME_WIDTH * ROBOTEYE_FRAME_HEIGHT) / 8)
+
+extern const uint8_t ROBOTEYE_FRAME_IDLE_OPEN[ROBOTEYE_FRAME_BYTES];
+extern const uint8_t ROBOTEYE_FRAME_IDLE_FOCUS[ROBOTEYE_FRAME_BYTES];
+extern const uint8_t ROBOTEYE_FRAME_BLINK_HALF[ROBOTEYE_FRAME_BYTES];
+extern const uint8_t ROBOTEYE_FRAME_BLINK_CLOSED[ROBOTEYE_FRAME_BYTES];
+extern const uint8_t ROBOTEYE_FRAME_LOOK_LEFT[ROBOTEYE_FRAME_BYTES];
+extern const uint8_t ROBOTEYE_FRAME_LOOK_RIGHT[ROBOTEYE_FRAME_BYTES];
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* ROBOTEYE_FRAMES_H */
