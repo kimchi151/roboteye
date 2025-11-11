@@ -1,0 +1,2200 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>로봇 표정 에디터(Made by kimchi)</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #fff7fb;
+      --bg-card: #ffffff;
+      --accent-pink: #ff8fb1;
+      --accent-pink-soft: #ffe1ee;
+      --accent-mint: #8be0d4;
+      --text-main: #3a3042;
+      --text-soft: #6b6670;
+      --border-soft: #ffd1e4;
+      --shadow-soft: 0 10px 25px rgba(255, 143, 177, 0.12);
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: "Nunito", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      max-width: 1150px;
+      margin: 20px auto;
+      padding: 0 16px 40px;
+      background: radial-gradient(circle at top left, #ffe8f5 0, #fff7fb 40%, #f5fbff 100%);
+      color: var(--text-main);
+    }
+    h1, h2 {
+      margin-bottom: 8px;
+    }
+    h1 {
+      font-weight: 800;
+      letter-spacing: 0.02em;
+    }
+    .card {
+      background: var(--bg-card);
+      border-radius: 20px;
+      padding: 16px 20px;
+      box-shadow: var(--shadow-soft);
+      margin-bottom: 18px;
+      border: 1px solid var(--border-soft);
+    }
+    #root {
+      margin-bottom: 40px;
+    }
+    button {
+      border-radius: 999px;
+      border: none;
+      padding: 6px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      background: var(--accent-pink-soft);
+      color: var(--text-main);
+      margin-right: 4px;
+      margin-top: 4px;
+      transition: background 0.15s, transform 0.05s, box-shadow 0.1s;
+      box-shadow: 0 2px 0 rgba(0,0,0,0.04);
+    }
+    button:hover {
+      background: #ffd0e4;
+      box-shadow: 0 3px 0 rgba(0,0,0,0.06);
+    }
+    button:active {
+      transform: translateY(1px);
+      box-shadow: 0 1px 0 rgba(0,0,0,0.04);
+    }
+    button.primary {
+      background: var(--accent-pink);
+      color: #fff;
+    }
+    button.primary:hover {
+      background: #ff6fa0;
+    }
+    button.secondary {
+      background: #f5f5f6;
+      color: var(--text-main);
+    }
+    button.secondary:hover {
+      background: #ececef;
+    }
+    button.small {
+      padding: 4px 10px;
+      font-size: 12px;
+    }
+    button:disabled {
+      opacity: 0.45;
+      cursor: default;
+      transform: none;
+      box-shadow: none;
+    }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 6px;
+    }
+    .toolbar-section-title {
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .toolbar-section-title::before {
+      content: "◆";
+      font-size: 10px;
+      color: var(--accent-pink);
+    }
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .top-bar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .status-pill {
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 12px;
+      background: #ffe7ef;
+      color: #b23a5d;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .status-pill.ok {
+      background: #e3fff5;
+      color: #1d7a5b;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #f88aaf;
+    }
+    .status-pill.ok .status-dot {
+      background: #3bd296;
+    }
+    .field {
+      font-size: 12px;
+      margin: 6px 0;
+    }
+    .field label {
+      display: block;
+      margin-bottom: 2px;
+      font-weight: 700;
+    }
+    .field input, .field select, .field textarea {
+      font-family: inherit;
+      font-size: 13px;
+      padding: 5px 9px;
+      border-radius: 10px;
+      border: 1px solid #d7d3dd;
+      width: 100%;
+      box-sizing: border-box;
+      outline: none;
+      background: #fff;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      border-color: var(--accent-pink);
+      box-shadow: 0 0 0 2px rgba(255, 143, 177, 0.18);
+    }
+    .canvas-wrapper {
+      position: relative;
+      background: radial-gradient(circle at top, #fff9fd 0, #fff 60%);
+      border-radius: 18px;
+      box-shadow: inset 0 0 0 1px rgba(255, 190, 220, 0.4);
+      padding: 12px;
+      max-width: 100%;
+    }
+    .canvas-inner {
+      position: relative;
+      display: inline-block;
+    }
+    canvas {
+      display: block;
+    }
+    .frame-list {
+      max-height: 220px;
+      overflow-y: auto;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+      border-radius: 16px;
+      border: 1px solid #f0ddea;
+      background: #fffafc;
+    }
+    .frame-item {
+      padding: 6px 10px;
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      border-bottom: 1px solid #f2e3ee;
+    }
+    .frame-item:last-child {
+      border-bottom: none;
+    }
+    .frame-item:hover {
+      background: #ffeef7;
+    }
+    .frame-item.active {
+      background: #ffe1f4;
+    }
+    .log {
+      font-size: 11px;
+      white-space: pre-wrap;
+      max-height: 180px;
+      overflow-y: auto;
+      background: #19121f;
+      color: #e7ffe9;
+      padding: 8px;
+      border-radius: 12px;
+      font-family: ui-monospace, Menlo, Monaco, "Cascadia Mono", "SF Mono", monospace;
+      border: 1px solid #34243f;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 999px;
+      font-size: 10px;
+      background: #ffe9f3;
+      color: #6a3750;
+      margin-left: 4px;
+    }
+    .header-identity {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .robot-avatar {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #fff, #ffb5d1 60%, #f586b5 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 12px rgba(255, 143, 177, 0.4);
+      position: relative;
+      overflow: hidden;
+    }
+    .robot-eye {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #412339;
+      top: 16px;
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.6);
+    }
+    .robot-eye.left {
+      left: 12px;
+    }
+    .robot-eye.right {
+      right: 12px;
+    }
+    .robot-mouth {
+      position: absolute;
+      bottom: 12px;
+      left: 50%;
+      width: 18px;
+      height: 10px;
+      border-radius: 0 0 999px 999px;
+      border-bottom: 3px solid #412339;
+      transform: translateX(-50%);
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #fff2fa;
+      border: 1px solid #ffd8ef;
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+    .code-area {
+      font-family: ui-monospace, Menlo, Monaco, "Cascadia Mono", "SF Mono", monospace;
+      font-size: 11px;
+      width: 100%;
+      min-height: 140px;
+      resize: vertical;
+      border-radius: 12px;
+      padding: 8px 10px;
+      background: #1b1424;
+      color: #fdf5ff;
+      border: 1px solid #3d294f;
+    }
+    .code-area:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(255, 143, 177, 0.35);
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- React & Babel CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script type="text/babel" data-presets="env,react">
+    const { useState, useRef, useEffect } = React;
+
+    const WIDTH = 128;
+    const HEIGHT = 64;
+    const FRAME_SIZE = (WIDTH * HEIGHT) / 8;
+
+    const TOOLS = {
+      PENCIL: 'pencil',
+      ERASER: 'eraser',
+      LINE: 'line',
+      RECT: 'rect',
+      CIRCLE: 'circle',
+      FILL: 'fill',
+      SELECT: 'select',
+    };
+
+    // ---------- 유틸: 픽셀 배열 → 바이트 ----------
+    function pixelsToBytesStandalone(pixels) {
+      const bytes = new Uint8Array(FRAME_SIZE);
+      let byteIndex = 0;
+      for (let y = 0; y < HEIGHT; y++) {
+        for (let xByte = 0; xByte < WIDTH; xByte += 8) {
+          let byte = 0;
+          for (let bit = 0; bit < 8; bit++) {
+            const x = xByte + bit;
+            const on = pixels[y * WIDTH + x];
+            if (on) byte |= (1 << (7 - bit));
+          }
+          bytes[byteIndex++] = byte;
+        }
+      }
+      return Array.from(bytes); // JSON-friendly
+    }
+
+    function createEmptyPixels() {
+      return new Array(WIDTH * HEIGHT).fill(false);
+    }
+
+    function setRect(pixels, x0, y0, x1, y1, val = true) {
+      for (let y = y0; y <= y1; y++) {
+        if (y < 0 || y >= HEIGHT) continue;
+        for (let x = x0; x <= x1; x++) {
+          if (x < 0 || x >= WIDTH) continue;
+          pixels[y * WIDTH + x] = val;
+        }
+      }
+    }
+
+    // ---------- 예제 표정들 ----------
+    function buildExampleBasicEyes() {
+      const frames = [];
+      const p = createEmptyPixels();
+
+      // 원래 코드: leftEyeX=45, eyeWidth=25, eyeHeight=30, eyeY=18
+      setRect(p, 45, 18, 45 + 25 - 1, 18 + 30 - 1, true);
+      setRect(p, 80, 18, 80 + 25 - 1, 18 + 30 - 1, true);
+
+      frames.push({
+        delay: 200,
+        bytes: pixelsToBytesStandalone(p),
+      });
+      return frames;
+    }
+
+    function buildExampleBlinkEyes() {
+      const frames = [];
+
+      // frame 0: 눈 크게 뜬 상태
+      const open = createEmptyPixels();
+      setRect(open, 45, 18, 45 + 25 - 1, 18 + 30 - 1, true);
+      setRect(open, 80, 18, 80 + 25 - 1, 18 + 30 - 1, true);
+
+      // frame 1: 반쯤 감은 상태
+      const half = createEmptyPixels();
+      setRect(half, 45, 18 + 8, 45 + 25 - 1, 18 + 30 - 1 - 8, true);
+      setRect(half, 80, 18 + 8, 80 + 25 - 1, 18 + 30 - 1 - 8, true);
+
+      // frame 2: 완전히 감은 상태 (가느다란 선)
+      const closed = createEmptyPixels();
+      setRect(closed, 45, 18 + 15, 45 + 25 - 1, 18 + 15, true);
+      setRect(closed, 80, 18 + 15, 80 + 25 - 1, 18 + 15, true);
+
+      frames.push({ delay: 120, bytes: pixelsToBytesStandalone(open) });
+      frames.push({ delay: 80,  bytes: pixelsToBytesStandalone(half) });
+      frames.push({ delay: 60,  bytes: pixelsToBytesStandalone(closed) });
+      frames.push({ delay: 80,  bytes: pixelsToBytesStandalone(half) });
+      frames.push({ delay: 150, bytes: pixelsToBytesStandalone(open) });
+
+      return frames;
+    }
+
+    const EXAMPLE_PRESETS = [
+      {
+        id: 'example-basic',
+        name: '예제 1: 기본 눈 (정면)',
+        frames: buildExampleBasicEyes(),
+      },
+      {
+        id: 'example-blink',
+        name: '예제 2: 눈 깜빡임 애니메이션',
+        frames: buildExampleBlinkEyes(),
+      },
+    ];
+
+    // ---------- 썸네일 ----------
+    function FrameThumbnail({ frame }) {
+      const canvasRef = useRef(null);
+
+      useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas || !frame) return;
+        const ctx = canvas.getContext('2d');
+        const w = WIDTH;
+        const h = HEIGHT;
+        const scale = 1;
+        canvas.width = w * scale;
+        canvas.height = h * scale;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#000000';
+
+        const bytes = frame.bytes;
+        if (!bytes) return;
+        for (let y = 0; y < h; y++) {
+          for (let xByte = 0; xByte < w; xByte += 8) {
+            const byteIndex = y * (w / 8) + (xByte / 8);
+            const byte = bytes[byteIndex];
+            for (let bit = 0; bit < 8; bit++) {
+              const x = xByte + bit;
+              if (byte & (1 << (7 - bit))) {
+                ctx.fillRect(x * scale, y * scale, scale, scale);
+              }
+            }
+          }
+        }
+      }, [frame]);
+
+      return (
+        <canvas
+          ref={canvasRef}
+          style={{ width: '96px', height: '48px', borderRadius: 6, background: '#fff' }}
+        />
+      );
+    }
+
+    // ---------- 메인 앱 ----------
+    function App() {
+      // Web Serial
+      const [connected, setConnected] = useState(false);
+      const portRef = useRef(null);
+      const writerRef = useRef(null);
+      const readerRef = useRef(null);
+
+      // Canvas / pixels
+      const [pixelSize, setPixelSize] = useState(8);
+      const [showGrid, setShowGrid] = useState(true);
+      const baseCanvasRef = useRef(null);
+      const overlayCanvasRef = useRef(null);
+      const pixelsRef = useRef(new Array(WIDTH * HEIGHT).fill(false));
+
+      // Tools & state
+      const [currentTool, setCurrentTool] = useState(TOOLS.PENCIL);
+      const [brushSize, setBrushSize] = useState(1);
+      const [logs, setLogs] = useState([]);
+      const [frameDelay, setFrameDelay] = useState(150); // 기본 150ms
+      const [frames, setFrames] = useState([]); // {bytes, delay}
+      const [activeFrameIndex, setActiveFrameIndex] = useState(null);
+      const [exprId, setExprId] = useState(0);
+
+      // Undo / Redo
+      const undoStackRef = useRef([]);
+      const redoStackRef = useRef([]);
+      const [canUndo, setCanUndo] = useState(false);
+      const [canRedo, setCanRedo] = useState(false);
+
+      // 프리셋
+      const [presets, setPresets] = useState([]);
+      const [presetName, setPresetName] = useState('');
+
+      // ESP 코드 내보내기
+      const [exportCode, setExportCode] = useState('');
+      const [copyStatus, setCopyStatus] = useState('');
+
+      const drawingStateRef = useRef({
+        isDown: false,
+        mode: null, // 'selecting' | 'moveFloating' | 'resizeFloating' | 'shape'
+        startX: 0,
+        startY: 0,
+        lastX: 0,
+        lastY: 0,
+        selection: null,  // {x,y,w,h}
+        floating: null,   // {x,y,w,h,data[]}
+        clipboard: null,  // {w,h,data[]}
+        resizeHandle: null,
+        moveOffsetX: 0,
+        moveOffsetY: 0,
+        resizeStart: null, // {x0,y0,w0,h0,data0,handle}
+      });
+
+      const log = (msg) => {
+        setLogs(prev => [...prev.slice(-200), `[${new Date().toLocaleTimeString()}] ${msg}`]);
+      };
+
+      // ===== 히스토리 =====
+      const pushHistory = () => {
+        const snapshot = {
+          pixels: [...pixelsRef.current],
+          frameDelay: frameDelay,
+        };
+        const undoStack = undoStackRef.current;
+        undoStack.push(snapshot);
+        if (undoStack.length > 50) undoStack.shift();
+        redoStackRef.current = [];
+        setCanUndo(true);
+        setCanRedo(false);
+      };
+
+      const undo = () => {
+        const undoStack = undoStackRef.current;
+        const redoStack = redoStackRef.current;
+        if (!undoStack.length) {
+          log('되돌릴 내용이 없습니다.');
+          return;
+        }
+        const currentSnapshot = {
+          pixels: [...pixelsRef.current],
+          frameDelay,
+        };
+        redoStack.push(currentSnapshot);
+        const snapshot = undoStack.pop();
+        pixelsRef.current = [...snapshot.pixels];
+        setFrameDelay(snapshot.frameDelay);
+
+        const state = drawingStateRef.current;
+        state.selection = null;
+        state.floating = null;
+        state.mode = null;
+
+        redrawBase();
+        redrawOverlay();
+        setCanUndo(undoStack.length > 0);
+        setCanRedo(redoStack.length > 0);
+        log('Undo 실행');
+
+        if (activeFrameIndex != null) {
+          syncCurrentFrame();
+        }
+      };
+
+      const redo = () => {
+        const undoStack = undoStackRef.current;
+        const redoStack = redoStackRef.current;
+        if (!redoStack.length) {
+          log('다시하기 할 내용이 없습니다.');
+          return;
+        }
+        const currentSnapshot = {
+          pixels: [...pixelsRef.current],
+          frameDelay,
+        };
+        undoStack.push(currentSnapshot);
+        const snapshot = redoStack.pop();
+        pixelsRef.current = [...snapshot.pixels];
+        setFrameDelay(snapshot.frameDelay);
+
+        const state = drawingStateRef.current;
+        state.selection = null;
+        state.floating = null;
+        state.mode = null;
+
+        redrawBase();
+        redrawOverlay();
+        setCanUndo(undoStack.length > 0);
+        setCanRedo(redoStack.length > 0);
+        log('Redo 실행');
+
+        if (activeFrameIndex != null) {
+          syncCurrentFrame();
+        }
+      };
+
+      // ===== 캔버스 유틸 =====
+      const redrawBase = () => {
+        const base = baseCanvasRef.current;
+        if (!base) return;
+        const ctx = base.getContext('2d');
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, base.width, base.height);
+
+        // 픽셀
+        ctx.fillStyle = '#000000';
+        const pixels = pixelsRef.current;
+        for (let y = 0; y < HEIGHT; y++) {
+          for (let x = 0; x < WIDTH; x++) {
+            if (pixels[y * WIDTH + x]) {
+              ctx.fillRect(
+                x * pixelSize,
+                y * pixelSize,
+                pixelSize,
+                pixelSize
+              );
+            }
+          }
+        }
+
+        // 격자
+        if (showGrid) {
+          ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+          ctx.lineWidth = 1;
+          for (let x = 0; x <= WIDTH; x++) {
+            const px = x * pixelSize + 0.5;
+            ctx.beginPath();
+            ctx.moveTo(px, 0);
+            ctx.lineTo(px, HEIGHT * pixelSize);
+            ctx.stroke();
+          }
+          for (let y = 0; y <= HEIGHT; y++) {
+            const py = y * pixelSize + 0.5;
+            ctx.beginPath();
+            ctx.moveTo(0, py);
+            ctx.lineTo(WIDTH * pixelSize, py);
+            ctx.stroke();
+          }
+        }
+      };
+
+      const clearOverlay = () => {
+        const overlay = overlayCanvasRef.current;
+        if (!overlay) return;
+        const ctx = overlay.getContext('2d');
+        ctx.clearRect(0, 0, overlay.width, overlay.height);
+      };
+
+      const setPixel = (x, y, value) => {
+        if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT) return;
+        const pixels = pixelsRef.current;
+        pixels[y * WIDTH + x] = value;
+      };
+
+      const paintPixel = (x, y, value) => {
+        const r = Math.max(0, brushSize - 1);
+        if (r === 0) {
+          setPixel(x, y, value);
+          return;
+        }
+        for (let dy = -r; dy <= r; dy++) {
+          for (let dx = -r; dx <= r; dx++) {
+            if (dx * dx + dy * dy <= r * r) {
+              setPixel(x + dx, y + dy, value);
+            }
+          }
+        }
+      };
+
+      const getCanvasXY = (e) => {
+        const base = baseCanvasRef.current;
+        const rect = base.getBoundingClientRect();
+        const clientX = e.clientX;
+        const clientY = e.clientY;
+        const canvasX = clientX - rect.left;
+        const canvasY = clientY - rect.top;
+        const scaleX = WIDTH / rect.width;
+        const scaleY = HEIGHT / rect.height;
+        const x = Math.floor(canvasX * scaleX);
+        const y = Math.floor(canvasY * scaleY);
+        return { x, y };
+      };
+
+      // ===== 선택/플로팅 렌더링 =====
+      const drawSelectionBox = (ctx, selection) => {
+        let { x, y, w, h } = selection;
+        const x0 = w >= 0 ? x : x + w;
+        const y0 = h >= 0 ? y : y + h;
+        const ww = Math.abs(w);
+        const hh = Math.abs(h);
+        ctx.strokeStyle = 'rgba(255, 120, 0, 0.9)';
+        ctx.setLineDash([4, 2]);
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(
+          x0 * pixelSize + 0.5,
+          y0 * pixelSize + 0.5,
+          (ww + 1) * pixelSize,
+          (hh + 1) * pixelSize
+        );
+        ctx.setLineDash([]);
+      };
+
+      const drawFloatingBox = (ctx, floating) => {
+        const { x, y, w, h, data } = floating;
+
+        // 내용
+        ctx.fillStyle = 'rgba(0,0,0,0.9)';
+        let idx = 0;
+        for (let yy = 0; yy < h; yy++) {
+          for (let xx = 0; xx < w; xx++) {
+            const on = data[idx++];
+            if (on) {
+              ctx.fillRect(
+                (x + xx) * pixelSize,
+                (y + yy) * pixelSize,
+                pixelSize,
+                pixelSize
+              );
+            }
+          }
+        }
+
+        // 테두리 + 핸들
+        const left = x;
+        const top = y;
+        const right = x + w - 1;
+        const bottom = y + h - 1;
+
+        ctx.strokeStyle = 'rgba(0, 180, 255, 0.9)';
+        ctx.setLineDash([4, 2]);
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(
+          left * pixelSize + 0.5,
+          top * pixelSize + 0.5,
+          w * pixelSize,
+          h * pixelSize
+        );
+        ctx.setLineDash([]);
+
+        const handleSize = Math.max(4, pixelSize * 0.6);
+        ctx.fillStyle = '#ffffff';
+        ctx.strokeStyle = '#00aaff';
+        ctx.lineWidth = 1;
+
+        const drawHandle = (cx, cy) => {
+          const px = cx * pixelSize;
+          const py = cy * pixelSize;
+          ctx.beginPath();
+          ctx.rect(
+            px - handleSize / 2,
+            py - handleSize / 2,
+            handleSize,
+            handleSize
+          );
+          ctx.fill();
+          ctx.stroke();
+        };
+
+        drawHandle(left, top);
+        drawHandle(right, top);
+        drawHandle(left, bottom);
+        drawHandle(right, bottom);
+        drawHandle((left + right) / 2, top);
+        drawHandle((left + right) / 2, bottom);
+        drawHandle(left, (top + bottom) / 2);
+        drawHandle(right, (top + bottom) / 2);
+      };
+
+      const redrawOverlay = () => {
+        const overlay = overlayCanvasRef.current;
+        if (!overlay) return;
+        const ctx = overlay.getContext('2d');
+        ctx.clearRect(0, 0, overlay.width, overlay.height);
+
+        const state = drawingStateRef.current;
+        if (state.floating) drawFloatingBox(ctx, state.floating);
+        if (state.selection) drawSelectionBox(ctx, state.selection);
+      };
+
+      const getNormalizedSelection = () => {
+        const sel = drawingStateRef.current.selection;
+        if (!sel) return null;
+        let { x, y, w, h } = sel;
+        const x0 = w >= 0 ? x : x + w;
+        const y0 = h >= 0 ? y : y + h;
+        const ww = Math.abs(w) + 1;
+        const hh = Math.abs(h) + 1;
+        return { x: x0, y: y0, w: ww, h: hh };
+      };
+
+      const hitTestFloatingHandle = (px, py) => {
+        const { floating } = drawingStateRef.current;
+        if (!floating) return null;
+        const { x, y, w, h } = floating;
+        const left = x;
+        const top = y;
+        const right = x + w - 1;
+        const bottom = y + h - 1;
+        const margin = 1;
+
+        const near = (a, b) => Math.abs(a - b) <= margin;
+        const inside =
+          px >= left && px <= right && py >= top && py <= bottom;
+
+        if (near(px, left) && near(py, top)) return 'nw';
+        if (near(px, right) && near(py, top)) return 'ne';
+        if (near(px, left) && near(py, bottom)) return 'sw';
+        if (near(px, right) && near(py, bottom)) return 'se';
+
+        if (near(py, top) && px > left && px < right) return 'n';
+        if (near(py, bottom) && px > left && px < right) return 's';
+        if (near(px, left) && py > top && py < bottom) return 'w';
+        if (near(px, right) && py > top && py < bottom) return 'e';
+
+        if (inside) return 'move';
+        return null;
+      };
+
+      const scaleData = (data, oldW, oldH, newW, newH) => {
+        const newData = new Array(newW * newH).fill(false);
+        for (let y = 0; y < newH; y++) {
+          for (let x = 0; x < newW; x++) {
+            const srcX = Math.floor((x * oldW) / newW);
+            const srcY = Math.floor((y * oldH) / newH);
+            const srcIdx = srcY * oldW + srcX;
+            newData[y * newW + x] = data[srcIdx];
+          }
+        }
+        return newData;
+      };
+
+      const resizeFloatingAt = (px, py) => {
+        const state = drawingStateRef.current;
+        const { resizeStart } = state;
+        if (!resizeStart) return;
+
+        const { x0, y0, w0, h0, data0, handle } = resizeStart;
+        const right0 = x0 + w0 - 1;
+        const bottom0 = y0 + h0 - 1;
+
+        let newX = x0;
+        let newY = y0;
+        let newW = w0;
+        let newH = h0;
+
+        const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+
+        switch (handle) {
+          case 'n':
+            newY = clamp(py, 0, bottom0);
+            newH = bottom0 - newY + 1;
+            break;
+          case 's': {
+            const newBottom = clamp(py, y0, HEIGHT - 1);
+            newH = newBottom - y0 + 1;
+            break;
+          }
+          case 'w':
+            newX = clamp(px, 0, right0);
+            newW = right0 - newX + 1;
+            break;
+          case 'e': {
+            const newRight = clamp(px, x0, WIDTH - 1);
+            newW = newRight - x0 + 1;
+            break;
+          }
+          case 'nw':
+            newX = clamp(px, 0, right0);
+            newY = clamp(py, 0, bottom0);
+            newW = right0 - newX + 1;
+            newH = bottom0 - newY + 1;
+            break;
+          case 'ne': {
+            const newRight = clamp(px, x0, WIDTH - 1);
+            newY = clamp(py, 0, bottom0);
+            newW = newRight - x0 + 1;
+            newH = bottom0 - newY + 1;
+            newX = x0;
+            break;
+          }
+          case 'sw': {
+            const newBottom = clamp(py, y0, HEIGHT - 1);
+            newX = clamp(px, 0, right0);
+            newY = y0;
+            newW = right0 - newX + 1;
+            newH = newBottom - y0 + 1;
+            break;
+          }
+          case 'se': {
+            const newRight = clamp(px, x0, WIDTH - 1);
+            const newBottom = clamp(py, y0, HEIGHT - 1);
+            newX = x0;
+            newY = y0;
+            newW = newRight - x0 + 1;
+            newH = newBottom - y0 + 1;
+            break;
+          }
+        }
+
+        newW = Math.max(1, Math.min(newW, WIDTH));
+        newH = Math.max(1, Math.min(newH, HEIGHT));
+        if (newX + newW > WIDTH) newX = WIDTH - newW;
+        if (newY + newH > HEIGHT) newY = HEIGHT - newH;
+
+        const newData = scaleData(data0, w0, h0, newW, newH);
+        state.floating = { x: newX, y: newY, w: newW, h: newH, data: newData };
+        redrawOverlay();
+      };
+
+      const commitFloating = () => {
+        const state = drawingStateRef.current;
+        const { floating } = state;
+        if (!floating) {
+          log('이동/크기 수정 중인 영역이 없습니다.');
+          return;
+        }
+        pushHistory();
+        const { x, y, w, h, data } = floating;
+        const pixels = pixelsRef.current;
+        let idx = 0;
+        for (let yy = 0; yy < h; yy++) {
+          for (let xx = 0; xx < w; xx++) {
+            const on = data[idx++];
+            const tx = x + xx;
+            const ty = y + yy;
+            if (tx < 0 || tx >= WIDTH || ty < 0 || ty >= HEIGHT) continue;
+            pixels[ty * WIDTH + tx] = on ? true : false;
+          }
+        }
+        state.floating = null;
+        state.mode = null;
+        redrawBase();
+        redrawOverlay();
+        log('붙여넣기 확정 완료');
+
+        if (activeFrameIndex != null) {
+          syncCurrentFrame();
+        }
+      };
+
+      // ===== 마우스 이벤트 =====
+      const handleCanvasMouseDown = (e) => {
+        e.preventDefault();
+        const { x, y } = getCanvasXY(e);
+        const state = drawingStateRef.current;
+        state.isDown = true;
+        state.startX = x;
+        state.startY = y;
+        state.lastX = x;
+        state.lastY = y;
+
+        if (currentTool === TOOLS.PENCIL || currentTool === TOOLS.ERASER) {
+          pushHistory();
+          const val = currentTool === TOOLS.PENCIL;
+          paintPixel(x, y, val);
+          redrawBase();
+          state.mode = null;
+        } else if (currentTool === TOOLS.FILL) {
+          pushHistory();
+          floodFill(x, y);
+          redrawBase();
+          state.mode = null;
+
+          if (activeFrameIndex != null) {
+            syncCurrentFrame();
+          }
+        } else if (currentTool === TOOLS.SELECT) {
+          const handle = hitTestFloatingHandle(x, y);
+          if (handle) {
+            const { floating } = state;
+            if (handle === 'move') {
+              state.mode = 'moveFloating';
+              state.moveOffsetX = x - floating.x;
+              state.moveOffsetY = y - floating.y;
+            } else {
+              state.mode = 'resizeFloating';
+              state.resizeHandle = handle;
+              state.resizeStart = {
+                x0: floating.x,
+                y0: floating.y,
+                w0: floating.w,
+                h0: floating.h,
+                data0: [...floating.data],
+                handle,
+              };
+            }
+          } else {
+            state.selection = { x, y, w: 0, h: 0 };
+            state.mode = 'selecting';
+            redrawOverlay();
+          }
+        } else {
+          // 도형 도구
+          pushHistory();
+          state.mode = 'shape';
+        }
+      };
+
+      const handleCanvasMouseMove = (e) => {
+        const state = drawingStateRef.current;
+        if (!state.isDown) return;
+        e.preventDefault();
+        const { x, y } = getCanvasXY(e);
+
+        if (currentTool === TOOLS.PENCIL || currentTool === TOOLS.ERASER) {
+          const val = currentTool === TOOLS.PENCIL;
+          drawLineOnPixels(state.lastX, state.lastY, x, y, val);
+          state.lastX = x;
+          state.lastY = y;
+          redrawBase();
+        } else if (
+          currentTool === TOOLS.LINE ||
+          currentTool === TOOLS.RECT ||
+          currentTool === TOOLS.CIRCLE
+        ) {
+          state.lastX = x;
+          state.lastY = y;
+          drawShapePreview();
+        } else if (currentTool === TOOLS.SELECT) {
+          if (state.mode === 'selecting') {
+            const sel = state.selection;
+            if (!sel) return;
+            sel.w = x - sel.x;
+            sel.h = y - sel.y;
+            redrawOverlay();
+          } else if (state.mode === 'moveFloating') {
+            const { floating } = state;
+            if (!floating) return;
+            let newX = x - state.moveOffsetX;
+            let newY = y - state.moveOffsetY;
+            newX = Math.max(0, Math.min(newX, WIDTH - floating.w));
+            newY = Math.max(0, Math.min(newY, HEIGHT - floating.h));
+            floating.x = newX;
+            floating.y = newY;
+            redrawOverlay();
+          } else if (state.mode === 'resizeFloating') {
+            resizeFloatingAt(x, y);
+          }
+        }
+      };
+
+      const handleCanvasMouseUp = (e) => {
+        const state = drawingStateRef.current;
+        if (!state.isDown) return;
+        e.preventDefault();
+        state.isDown = false;
+
+        if (
+          currentTool === TOOLS.LINE ||
+          currentTool === TOOLS.RECT ||
+          currentTool === TOOLS.CIRCLE
+        ) {
+          applyShapeToPixels();
+          clearOverlay();
+          redrawBase();
+          state.mode = null;
+        } else if (currentTool === TOOLS.SELECT) {
+          if (state.mode === 'selecting') {
+            redrawOverlay();
+          } else if (state.mode === 'resizeFloating') {
+            state.resizeStart = null;
+            redrawOverlay();
+          } else if (state.mode === 'moveFloating') {
+            redrawOverlay();
+          }
+          state.mode = null;
+        }
+
+        if (activeFrameIndex != null) {
+          syncCurrentFrame();
+        }
+      };
+
+      // ===== 도형/선/채우기 =====
+      const drawLineOnPixels = (x0, y0, x1, y1, val) => {
+        let dx = Math.abs(x1 - x0);
+        let dy = -Math.abs(y1 - y0);
+        let sx = x0 < x1 ? 1 : -1;
+        let sy = y0 < y1 ? 1 : -1;
+        let err = dx + dy;
+
+        let x = x0;
+        let y = y0;
+        while (true) {
+          paintPixel(x, y, val);
+          if (x === x1 && y === y1) break;
+          const e2 = 2 * err;
+          if (e2 >= dy) {
+            err += dy;
+            x += sx;
+          }
+          if (e2 <= dx) {
+            err += dx;
+            y += sy;
+          }
+        }
+      };
+
+      const drawShapePreview = () => {
+        const overlay = overlayCanvasRef.current;
+        if (!overlay) return;
+        const ctx = overlay.getContext('2d');
+        clearOverlay(); // 도형 그릴 때는 선택/플로팅 임시 숨김
+
+        const state = drawingStateRef.current;
+        const { startX, startY, lastX, lastY } = state;
+        ctx.strokeStyle = 'rgba(0, 100, 255, 0.8)';
+        ctx.lineWidth = 1.5;
+
+        if (currentTool === TOOLS.LINE) {
+          ctx.beginPath();
+          ctx.moveTo((startX + 0.5) * pixelSize, (startY + 0.5) * pixelSize);
+          ctx.lineTo((lastX + 0.5) * pixelSize, (lastY + 0.5) * pixelSize);
+          ctx.stroke();
+        } else if (currentTool === TOOLS.RECT) {
+          const x = Math.min(startX, lastX);
+          const y = Math.min(startY, lastY);
+          const w = Math.abs(lastX - startX);
+          const h = Math.abs(lastY - startY);
+          ctx.strokeRect(
+            x * pixelSize + 0.5,
+            y * pixelSize + 0.5,
+            (w + 1) * pixelSize,
+            (h + 1) * pixelSize
+          );
+        } else if (currentTool === TOOLS.CIRCLE) {
+          const dx = lastX - startX;
+          const dy = lastY - startY;
+          const r = Math.round(Math.sqrt(dx * dx + dy * dy));
+          ctx.beginPath();
+          ctx.arc(
+            (startX + 0.5) * pixelSize,
+            (startY + 0.5) * pixelSize,
+            r * pixelSize,
+            0,
+            Math.PI * 2
+          );
+          ctx.stroke();
+        }
+      };
+
+      const drawCircle = (cx, cy, r, val) => {
+        let x = r;
+        let y = 0;
+        let err = 0;
+        while (x >= y) {
+          paintPixel(cx + x, cy + y, val);
+          paintPixel(cx + y, cy + x, val);
+          paintPixel(cx - y, cy + x, val);
+          paintPixel(cx - x, cy + y, val);
+          paintPixel(cx - x, cy - y, val);
+          paintPixel(cx - y, cy - x, val);
+          paintPixel(cx + y, cy - x, val);
+          paintPixel(cx + x, cy - y, val);
+          y++;
+          if (err <= 0) {
+            err += 2 * y + 1;
+          } else {
+            x--;
+            err -= 2 * x + 1;
+          }
+        }
+      };
+
+      const applyShapeToPixels = () => {
+        const state = drawingStateRef.current;
+        const { startX, startY, lastX, lastY } = state;
+        const val = true;
+
+        if (currentTool === TOOLS.LINE) {
+          drawLineOnPixels(startX, startY, lastX, lastY, val);
+        } else if (currentTool === TOOLS.RECT) {
+          const x0 = Math.min(startX, lastX);
+          const y0 = Math.min(startY, lastY);
+          const x1 = Math.max(startX, lastX);
+          const y1 = Math.max(startY, lastY);
+          for (let x = x0; x <= x1; x++) {
+            paintPixel(x, y0, val);
+            paintPixel(x, y1, val);
+          }
+          for (let y = y0; y <= y1; y++) {
+            paintPixel(x0, y, val);
+            paintPixel(x1, y, val);
+          }
+        } else if (currentTool === TOOLS.CIRCLE) {
+          const dx = lastX - startX;
+          const dy = lastY - startY;
+          const r = Math.round(Math.sqrt(dx * dx + dy * dy));
+          drawCircle(startX, startY, r, val);
+        }
+      };
+
+      const floodFill = (sx, sy) => {
+        if (sx < 0 || sx >= WIDTH || sy < 0 || sy >= HEIGHT) return;
+        const pixels = pixelsRef.current;
+        const target = pixels[sy * WIDTH + sx];
+        const fillVal = !target;
+        const stack = [[sx, sy]];
+        const visited = new Set();
+        const key = (x, y) => `${x},${y}`;
+
+        while (stack.length > 0) {
+          const [x, y] = stack.pop();
+          if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT) continue;
+          const idx = y * WIDTH + x;
+          if (pixels[idx] !== target) continue;
+          const k = key(x, y);
+          if (visited.has(k)) continue;
+          visited.add(k);
+          pixels[idx] = fillVal;
+          stack.push([x + 1, y]);
+          stack.push([x - 1, y]);
+          stack.push([x, y + 1]);
+          stack.push([x, y - 1]);
+        }
+      };
+
+      // ===== 프레임 관리 =====
+      const clearCurrentFrame = () => {
+        pushHistory();
+        pixelsRef.current.fill(false);
+        const state = drawingStateRef.current;
+        state.selection = null;
+        state.floating = null;
+        state.mode = null;
+        redrawBase();
+        redrawOverlay();
+        log('현재 프레임 초기화');
+
+        if (activeFrameIndex != null) {
+          syncCurrentFrame();
+        }
+      };
+
+      const pixelsToBytes = () => {
+        const bytes = new Uint8Array(FRAME_SIZE);
+        let byteIndex = 0;
+        const pixels = pixelsRef.current;
+        for (let y = 0; y < HEIGHT; y++) {
+          for (let xByte = 0; xByte < WIDTH; xByte += 8) {
+            let byte = 0;
+            for (let bit = 0; bit < 8; bit++) {
+              const x = xByte + bit;
+              const on = pixels[y * WIDTH + x];
+              if (on) byte |= (1 << (7 - bit));
+            }
+            bytes[byteIndex++] = byte;
+          }
+        }
+        return bytes;
+      };
+
+      // ✅ 현재 프레임(캔버스+delay)을 frames[activeFrameIndex]에 자동 반영
+      const syncCurrentFrame = (customDelay) => {
+        if (activeFrameIndex == null) return;
+        const delayNum = parseInt(customDelay ?? frameDelay, 10) || 150;
+        const bytes = pixelsToBytes();
+        setFrames(prev =>
+          prev.map((f, idx) =>
+            idx === activeFrameIndex ? { bytes, delay: delayNum } : f
+          )
+        );
+      };
+
+      const bytesToPixels = (bytes) => {
+        const pixels = pixelsRef.current;
+        pixels.fill(false);
+        for (let y = 0; y < HEIGHT; y++) {
+          for (let xByte = 0; xByte < WIDTH; xByte += 8) {
+            const byteIndex = y * (WIDTH / 8) + (xByte / 8);
+            const byte = bytes[byteIndex];
+            for (let bit = 0; bit < 8; bit++) {
+              const x = xByte + bit;
+              const on = (byte & (1 << (7 - bit))) !== 0;
+              pixels[y * WIDTH + x] = on;
+            }
+          }
+        }
+        redrawBase();
+        redrawOverlay();
+      };
+
+      const addFrame = () => {
+        const delay = parseInt(frameDelay, 10) || 150;
+        const bytes = pixelsToBytes();
+        setFrames(prev => [...prev, { bytes, delay }]);
+        setActiveFrameIndex(frames.length);
+        log(`프레임 ${frames.length} 추가 (delay=${delay}ms)`);
+
+        pixelsRef.current.fill(false);
+        const state = drawingStateRef.current;
+        state.selection = null;
+        state.floating = null;
+        state.mode = null;
+        redrawBase();
+        redrawOverlay();
+      };
+
+      const resetFrames = () => {
+        setFrames([]);
+        setActiveFrameIndex(null);
+        log('모든 프레임 삭제');
+      };
+
+      const loadFrame = (idx) => {
+        const frame = frames[idx];
+        if (!frame) return;
+        bytesToPixels(frame.bytes);
+        setFrameDelay(frame.delay);
+        setActiveFrameIndex(idx);
+        log(`프레임 ${idx} 로드`);
+      };
+
+      const previewAnimation = async () => {
+        if (frames.length === 0) {
+          log('프레임이 없습니다.');
+          return;
+        }
+        log('프리뷰 재생 시작 (2회 루프)');
+        for (let loop = 0; loop < 2; loop++) {
+          for (let i = 0; i < frames.length; i++) {
+            bytesToPixels(frames[i].bytes);
+            await new Promise(r => setTimeout(r, frames[i].delay));
+          }
+        }
+        log('프리뷰 재생 종료');
+      };
+
+      // ===== 프레임 순서 변경 / 삭제 / 복제 =====
+      const moveFrameCore = (from, to) => {
+        setFrames(prev => {
+          if (from < 0 || from >= prev.length || to < 0 || to >= prev.length) return prev;
+          const arr = [...prev];
+          const [item] = arr.splice(from, 1);
+          arr.splice(to, 0, item);
+          return arr;
+        });
+        setActiveFrameIndex(prevIdx => {
+          if (prevIdx == null) return prevIdx;
+          if (prevIdx === from) return to;
+          if (from < to && prevIdx > from && prevIdx <= to) return prevIdx - 1;
+          if (from > to && prevIdx >= to && prevIdx < from) return prevIdx + 1;
+          return prevIdx;
+        });
+        log(`프레임 ${from} → ${to} 순서 변경`);
+      };
+
+      const moveFrameUp = (idx) => {
+        if (idx <= 0) return;
+        moveFrameCore(idx, idx - 1);
+      };
+
+      const moveFrameDown = (idx) => {
+        if (idx >= frames.length - 1) return;
+        moveFrameCore(idx, idx + 1);
+      };
+
+      const deleteFrame = (idx) => {
+        setFrames(prev => {
+          if (idx < 0 || idx >= prev.length) return prev;
+          const arr = [...prev];
+          arr.splice(idx, 1);
+
+          const prevActive = activeFrameIndex;
+          let newActive = prevActive;
+
+          if (prevActive != null) {
+            if (prevActive === idx) {
+              if (arr.length === 0) {
+                newActive = null;
+              } else {
+                newActive = Math.min(idx, arr.length - 1);
+              }
+            } else if (prevActive > idx) {
+              newActive = prevActive - 1;
+            }
+          }
+
+          if (newActive == null || arr.length === 0) {
+            pixelsRef.current.fill(false);
+            const state = drawingStateRef.current;
+            state.selection = null;
+            state.floating = null;
+            state.mode = null;
+            redrawBase();
+            redrawOverlay();
+            setActiveFrameIndex(null);
+          } else {
+            const frame = arr[newActive];
+            if (frame) {
+              bytesToPixels(frame.bytes);
+              setFrameDelay(frame.delay);
+              setActiveFrameIndex(newActive);
+            }
+          }
+
+          return arr;
+        });
+
+        log(`프레임 ${idx} 삭제`);
+      };
+
+      const duplicateFrame = (idx) => {
+        if (idx < 0 || idx >= frames.length) return;
+
+        let srcDelay;
+        let srcBytes;
+
+        if (idx === activeFrameIndex) {
+          srcDelay = parseInt(frameDelay, 10) || 150;
+          srcBytes = pixelsToBytes();
+        } else {
+          const src = frames[idx];
+          if (!src) return;
+          srcDelay = src.delay;
+          srcBytes = src.bytes;
+        }
+
+        const cloned = {
+          delay: srcDelay,
+          bytes: new Uint8Array(srcBytes),
+        };
+        const insertIndex = idx + 1;
+        const newFrames = [...frames];
+        newFrames.splice(insertIndex, 0, cloned);
+        setFrames(newFrames);
+        setActiveFrameIndex(insertIndex);
+        bytesToPixels(cloned.bytes);
+        setFrameDelay(cloned.delay);
+        log(`프레임 ${idx} 복제 → ${insertIndex}`);
+      };
+
+      // ===== 선택 / 클립보드 =====
+      const copySelection = () => {
+        const norm = getNormalizedSelection();
+        if (!norm) {
+          log('선택 영역이 없습니다.');
+          return;
+        }
+        const { x, y, w, h } = norm;
+        const pixels = pixelsRef.current;
+        const data = [];
+        for (let yy = 0; yy < h; yy++) {
+          for (let xx = 0; xx < w; xx++) {
+            const srcX = x + xx;
+            const srcY = y + yy;
+            data.push(pixels[srcY * WIDTH + srcX]);
+          }
+        }
+        const state = drawingStateRef.current;
+        state.clipboard = { w, h, data };
+        state.selection = null;
+        state.floating = { x, y, w, h, data: [...data] };
+        redrawOverlay();
+        log(`선택 영역 복사 & 플로팅: ${w}x${h}`);
+      };
+
+      const cutSelection = () => {
+        const norm = getNormalizedSelection();
+        if (!norm) {
+          log('선택 영역이 없습니다.');
+          return;
+        }
+        const { x, y, w, h } = norm;
+        const pixels = pixelsRef.current;
+        const data = [];
+        for (let yy = 0; yy < h; yy++) {
+          for (let xx = 0; xx < w; xx++) {
+            const srcX = x + xx;
+            const srcY = y + yy;
+            data.push(pixels[srcY * WIDTH + srcX]);
+          }
+        }
+
+        pushHistory();
+        for (let yy = 0; yy < h; yy++) {
+          for (let xx = 0; xx < w; xx++) {
+            const sx = x + xx;
+            const sy = y + yy;
+            pixels[sy * WIDTH + sx] = false;
+          }
+        }
+
+        const state = drawingStateRef.current;
+        state.clipboard = { w, h, data };
+        state.selection = null;
+        state.floating = { x, y, w, h, data: [...data] };
+        redrawBase();
+        redrawOverlay();
+        log(`선택 영역 잘라내기 & 플로팅: ${w}x${h}`);
+      };
+
+      const pasteClipboard = () => {
+        const state = drawingStateRef.current;
+        const clip = state.clipboard;
+        if (!clip) {
+          log('클립보드에 복사된 내용이 없습니다.');
+          return;
+        }
+        const { w, h, data } = clip;
+        const baseX = 2;
+        const baseY = 2;
+        state.floating = { x: baseX, y: baseY, w, h, data: [...data] };
+        state.selection = null;
+        redrawOverlay();
+        log(`클립보드 붙여넣기 (플로팅): ${w}x${h}`);
+      };
+
+      // ===== Web Serial =====
+      const connectSerial = async () => {
+        try {
+          if (!('serial' in navigator)) {
+            alert('이 브라우저는 Web Serial API를 지원하지 않습니다. Chrome/Edge를 사용하세요.');
+            return;
+          }
+          const port = await navigator.serial.requestPort();
+          await port.open({ baudRate: 115200 });
+          portRef.current = port;
+          writerRef.current = port.writable.getWriter();
+          readerRef.current = port.readable.getReader();
+          setConnected(true);
+          log('ESP32와 시리얼 연결 완료');
+
+          (async () => {
+            while (port.readable) {
+              try {
+                const { value, done } = await readerRef.current.read();
+                if (done) break;
+                if (value) {
+                  const text = new TextDecoder().decode(value);
+                  log('ESP32 ▶ ' + text.trim());
+                }
+              } catch (err) {
+                console.error(err);
+                break;
+              }
+            }
+          })();
+        } catch (err) {
+          console.error(err);
+          log('연결 실패: ' + err);
+        }
+      };
+
+      const uploadExpression = async () => {
+        if (!writerRef.current) {
+          log('먼저 ESP32와 연결하세요.');
+          return;
+        }
+        if (frames.length === 0) {
+          log('프레임이 하나도 없습니다.');
+          return;
+        }
+
+        let id = parseInt(exprId, 10);
+        if (isNaN(id) || id < 0 || id > 7) {
+          log('표정 ID는 0~7 사이로 입력하세요.');
+          return;
+        }
+
+        const frameCount = frames.length;
+        const totalBytes = 3 + 3 + frameCount * (2 + FRAME_SIZE);
+        const packet = new Uint8Array(totalBytes);
+        let offset = 0;
+
+        packet[offset++] = 'E'.charCodeAt(0);
+        packet[offset++] = 'X'.charCodeAt(0);
+        packet[offset++] = 'P'.charCodeAt(0);
+
+        packet[offset++] = id & 0xFF;
+        packet[offset++] = frameCount & 0xFF;
+        packet[offset++] = 0; // reserved
+
+        for (let i = 0; i < frameCount; i++) {
+          const frame = frames[i];
+          let d = parseInt(frame.delay, 10) || 150;
+          if (d < 10) d = 10;
+
+          packet[offset++] = d & 0xFF;
+          packet[offset++] = (d >> 8) & 0xFF;
+
+          if (frame.bytes.length !== FRAME_SIZE) {
+            log(`⚠ 프레임 ${i} 크기가 1024바이트가 아닙니다.`);
+            return;
+          }
+          packet.set(frame.bytes, offset);
+          offset += FRAME_SIZE;
+        }
+
+        await writerRef.current.write(packet);
+        log(`웹 ▶ EXP 전송 완료 (id=${id}, 프레임=${frameCount}, 총 ${totalBytes}바이트)`);
+      };
+
+      // ===== 프리셋 관리 (localStorage) =====
+      useEffect(() => {
+        try {
+          const raw = window.localStorage.getItem('espFacePresetsV1');
+          if (raw) {
+            const arr = JSON.parse(raw);
+            if (Array.isArray(arr)) setPresets(arr);
+          }
+        } catch (e) {
+          console.error('프리셋 로드 실패', e);
+        }
+      }, []);
+
+      const savePresetsToStorage = (next) => {
+        try {
+          window.localStorage.setItem('espFacePresetsV1', JSON.stringify(next));
+        } catch (e) {
+          console.error('프리셋 저장 실패', e);
+        }
+      };
+
+      const saveCurrentAsPreset = () => {
+        if (frames.length === 0) {
+          log('프레임이 없어서 프리셋으로 저장할 수 없습니다.');
+          return;
+        }
+        const name = presetName.trim() || `표정-${new Date().toLocaleTimeString()}`;
+        const newPreset = {
+          id: Date.now().toString(36) + Math.random().toString(36).slice(2),
+          name,
+          frames: frames.map(f => ({
+            delay: f.delay,
+            bytes: Array.from(f.bytes),
+          })),
+          createdAt: Date.now(),
+        };
+        const next = [...presets, newPreset];
+        setPresets(next);
+        savePresetsToStorage(next);
+        log(`프리셋 저장: ${name} (프레임 ${frames.length}개)`);
+      };
+
+      const loadPreset = (preset) => {
+        if (!preset) return;
+        const newFrames = preset.frames.map(fr => ({
+          delay: fr.delay,
+          bytes: new Uint8Array(fr.bytes),
+        }));
+        setFrames(newFrames);
+        if (newFrames.length > 0) {
+          bytesToPixels(newFrames[0].bytes);
+          setFrameDelay(newFrames[0].delay);
+          setActiveFrameIndex(0);
+        } else {
+          pixelsRef.current.fill(false);
+          redrawBase();
+          redrawOverlay();
+        }
+        log(`프리셋 불러오기: ${preset.name}`);
+      };
+
+      const deletePreset = (id) => {
+        const next = presets.filter(p => p.id !== id);
+        setPresets(next);
+        savePresetsToStorage(next);
+        log('프리셋 삭제');
+      };
+
+      // ===== 예제 프리셋 로드 =====
+      const loadExamplePreset = (example) => {
+        const newFrames = example.frames.map(fr => ({
+          delay: fr.delay,
+          bytes: new Uint8Array(fr.bytes),
+        }));
+        setFrames(newFrames);
+        if (newFrames.length > 0) {
+          bytesToPixels(newFrames[0].bytes);
+          setFrameDelay(newFrames[0].delay);
+          setActiveFrameIndex(0);
+        } else {
+          pixelsRef.current.fill(false);
+          redrawBase();
+          redrawOverlay();
+        }
+        log(`예제 불러오기: ${example.name}`);
+      };
+
+      // ===== ESP 코드 내보내기 =====
+      const generateExportCode = () => {
+        if (frames.length === 0) {
+          log('프레임이 없어 코드로 내보낼 수 없습니다.');
+          setExportCode('');
+          return;
+        }
+        const idNum = parseInt(exprId, 10);
+        const safeId = isNaN(idNum) ? 0 : Math.max(0, Math.min(255, idNum));
+        const varBase = `expr${safeId}`;
+        const frameCount = frames.length;
+
+        const toHex = (b) => '0x' + b.toString(16).toUpperCase().padStart(2, '0');
+
+        let code = '';
+        code += `// 다사이모찌 표정 데이터 (자동 생성)\n`;
+        code += `// ID: ${safeId}, 프레임: ${frameCount}\n\n`;
+        code += `#include <Arduino.h>\n\n`;
+        code += `#define FACE_W 128\n#define FACE_H 64\n#define FACE_FRAME_SIZE (FACE_W * FACE_H / 8)\n\n`;
+        code += `// --- 여기부터 복사해서 ESP32 스케치에 붙여넣기 ---\n\n`;
+        code += `const uint8_t ${varBase}_frames[${frameCount}][FACE_FRAME_SIZE] PROGMEM = {\n`;
+
+        frames.forEach((frame, fi) => {
+          const bytes = frame.bytes;
+          code += `  // frame ${fi}\n  {`;
+          if (bytes && bytes.length) {
+            bytes.forEach((b, bi) => {
+              code += toHex(b);
+              if (bi !== bytes.length - 1) code += ', ';
+              if ((bi + 1) % 16 === 0 && bi !== bytes.length - 1) code += '\n   ';
+            });
+          }
+          code += `}`;
+          if (fi !== frameCount - 1) code += ',\n';
+          else code += '\n';
+        });
+        code += '};\n\n';
+        code += `const uint16_t ${varBase}_delays[${frameCount}] PROGMEM = {`;
+        frames.forEach((frame, fi) => {
+          const d = parseInt(frame.delay, 10) || 150;
+          code += d;
+          if (fi !== frameCount - 1) code += ', ';
+        });
+        code += '};\n\n';
+        code += `const uint8_t ${varBase}_frameCount = ${frameCount};\n\n`;
+        code += `// 사용 예시 (루프에서):\n`;
+        code += `// for (uint8_t i = 0; i < ${varBase}_frameCount; ++i) {\n`;
+        code += `//   // ${varBase}_frames[i] 를 OLED 버퍼에 복사\n`;
+        code += `//   uint16_t d = pgm_read_word(&${varBase}_delays[i]);\n`;
+        code += `//   delay(d);\n`;
+        code += `// }\n`;
+
+        setExportCode(code);
+        setCopyStatus('');
+        log('ESP 스케치 코드 생성 완료 (C 배열 형태)');
+      };
+
+      const copyExportCode = async () => {
+        if (!exportCode) return;
+        try {
+          await navigator.clipboard.writeText(exportCode);
+          setCopyStatus('클립보드에 복사되었어요 ✨');
+          setTimeout(() => setCopyStatus(''), 1500);
+        } catch (e) {
+          console.error(e);
+          setCopyStatus('복사 실패: 텍스트를 직접 드래그해서 복사해주세요.');
+        }
+      };
+
+      // ===== 캔버스 초기화 =====
+      useEffect(() => {
+        const base = baseCanvasRef.current;
+        const overlay = overlayCanvasRef.current;
+        if (!base || !overlay) return;
+
+        base.width = WIDTH * pixelSize;
+        base.height = HEIGHT * pixelSize;
+        overlay.width = WIDTH * pixelSize;
+        overlay.height = HEIGHT * pixelSize;
+        redrawBase();
+        redrawOverlay();
+      }, [pixelSize, showGrid]);
+
+      // ===== JSX =====
+      return (
+        <div>
+          {/* 상단: 연결 상태 */}
+          <div className="card">
+            <div className="top-bar">
+              <div className="header-identity">
+                <div className="robot-avatar" aria-hidden="true">
+                  <div className="robot-eye left"></div>
+                  <div className="robot-eye right"></div>
+                  <div className="robot-mouth"></div>
+                </div>
+                <div>
+                  <h1 style={{marginBottom:4}}>다사이모찌 얼굴 에디터</h1>
+                  <div style={{fontSize:12, color:'#6b6670'}}>
+                    128×64 도트로 표정 애니메이션을 만들고, ESP32 다사이모찌 로봇에 전송/코드로 삽입해요.
+                  </div>
+                  <div style={{marginTop:4}}>
+                    <span className="chip">OLED 0.96"</span>{' '}
+                    <span className="chip">ESP32 DevKit</span>{' '}
+                    <span className="chip">표정 프레임 에디터</span>
+                  </div>
+                </div>
+              </div>
+              <div className="top-bar-right">
+                <button className="primary" onClick={connectSerial}>
+                  ESP32 연결
+                </button>
+                <div className={`status-pill ${connected ? 'ok' : ''}`}>
+                  <span className="status-dot"></span>
+                  {connected ? '연결됨' : '연결 안 됨'}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 캔버스 카드 */}
+          <div className="card">
+            <h2 style={{marginBottom:8}}>프레임 그리기</h2>
+            <div style={{fontSize:12, marginBottom:8, color:'#6b6670'}}>
+              마우스로 도트를 찍어 눈/입/표정을 만들고, 여러 프레임으로 애니메이션을 구성해보세요.
+            </div>
+
+            <div className="canvas-wrapper">
+              <div
+                className="canvas-inner"
+                style={{ width: WIDTH * pixelSize, height: HEIGHT * pixelSize }}
+              >
+                <canvas
+                  ref={baseCanvasRef}
+                  style={{ position: 'absolute', left: 0, top: 0 }}
+                  onMouseDown={handleCanvasMouseDown}
+                  onMouseMove={handleCanvasMouseMove}
+                  onMouseUp={handleCanvasMouseUp}
+                  onMouseLeave={handleCanvasMouseUp}
+                />
+                <canvas
+                  ref={overlayCanvasRef}
+                  style={{ position: 'absolute', left: 0, top: 0, pointerEvents: 'none' }}
+                />
+              </div>
+            </div>
+
+            {/* 도구 / 굵기 / 선택 / 보기 / 프레임 / 히스토리 */}
+            <div style={{marginTop:12, display:'flex', flexWrap:'wrap', gap:16}}>
+              <div style={{minWidth:200}}>
+                <div className="toolbar-section-title">도구</div>
+                <div className="toolbar">
+                  {[
+                    [TOOLS.PENCIL, '연필'],
+                    [TOOLS.ERASER, '지우개'],
+                    [TOOLS.LINE, '선'],
+                    [TOOLS.RECT, '사각형'],
+                    [TOOLS.CIRCLE, '원'],
+                    [TOOLS.FILL, '채우기'],
+                    [TOOLS.SELECT, '선택'],
+                  ].map(([tool, label]) => (
+                    <button
+                      key={tool}
+                      className={'small ' + (currentTool === tool ? 'primary' : 'secondary')}
+                      onClick={() => setCurrentTool(tool)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                <div style={{fontSize:11, color:'#666', marginTop:4}}>
+                  선택 도구: 드래그로 영역 선택 → 복사/잘라내기 후 플로팅 상태에서 이동/크기 변경 가능.
+                </div>
+              </div>
+
+              <div style={{minWidth:160}}>
+                <div className="toolbar-section-title">굵기 (연필/지우개/도형)</div>
+                <div className="toolbar">
+                  {[1, 2, 3, 4].map(size => (
+                    <button
+                      key={size}
+                      className={'small ' + (brushSize === size ? 'primary' : 'secondary')}
+                      onClick={() => setBrushSize(size)}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{minWidth:220}}>
+                <div className="toolbar-section-title">선택 / 클립보드</div>
+                <div className="toolbar">
+                  <button className="small secondary" onClick={copySelection}>
+                    복사+플로팅
+                  </button>
+                  <button className="small secondary" onClick={cutSelection}>
+                    잘라내기+플로팅
+                  </button>
+                  <button className="small secondary" onClick={pasteClipboard}>
+                    붙여넣기
+                  </button>
+                  <button className="small secondary" onClick={commitFloating}>
+                    붙여넣기 확정
+                  </button>
+                </div>
+              </div>
+
+              <div style={{minWidth:180}}>
+                <div className="toolbar-section-title">보기</div>
+                <div className="toolbar">
+                  <select
+                    value={pixelSize}
+                    onChange={(e) => setPixelSize(parseInt(e.target.value,10) || 8)}
+                    style={{fontSize:12, padding:'3px 8px', borderRadius:10}}
+                  >
+                    <option value={6}>픽셀 ×6</option>
+                    <option value={8}>픽셀 ×8</option>
+                    <option value={10}>픽셀 ×10</option>
+                    <option value={12}>픽셀 ×12</option>
+                  </select>
+                  <button
+                    className={'small ' + (showGrid ? 'primary' : 'secondary')}
+                    onClick={() => setShowGrid(v => !v)}
+                  >
+                    격자 {showGrid ? '숨기기' : '보이기'}
+                  </button>
+                </div>
+              </div>
+
+              <div style={{minWidth:200}}>
+                <div className="toolbar-section-title">현재 프레임</div>
+                <div className="field">
+                  <label>재생 시간(ms)</label>
+                  <input
+                    type="number"
+                    value={frameDelay}
+                    min={10}
+                    max={2000}
+                    step={10}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setFrameDelay(v);
+                      if (activeFrameIndex != null) {
+                        syncCurrentFrame(v);
+                      }
+                    }}
+                  />
+                </div>
+                <div>
+                  <button className="secondary small" onClick={clearCurrentFrame}>
+                    현재 프레임 지우기
+                  </button>
+                  <button className="secondary small" onClick={previewAnimation}>
+                    프레임 프리뷰 (2회)
+                  </button>
+                </div>
+              </div>
+
+              <div style={{minWidth:200}}>
+                <div className="toolbar-section-title">히스토리</div>
+                <div className="toolbar">
+                  <button
+                    className="small secondary"
+                    onClick={undo}
+                    disabled={!canUndo}
+                  >
+                    되돌리기 (Undo)
+                  </button>
+                  <button
+                    className="small secondary"
+                    onClick={redo}
+                    disabled={!canRedo}
+                  >
+                    다시하기 (Redo)
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 프레임 카드 */}
+          <div className="card">
+            <h2 style={{marginBottom:8}}>프레임 관리 & 예제</h2>
+            <div style={{display:'flex', flexWrap:'wrap', gap:16}}>
+              <div style={{minWidth:220, flex:'0 0 260px'}}>
+                <div className="toolbar-section-title">프레임 작업</div>
+                <div style={{display:'flex', gap:6, flexWrap:'wrap', marginBottom:8}}>
+                  <button className="primary small" onClick={addFrame}>
+                    프레임 추가
+                  </button>
+                  <button className="secondary small" onClick={resetFrames}>
+                    전체 삭제
+                  </button>
+                  <button className="secondary small" onClick={previewAnimation}>
+                    전체 프리뷰 재생
+                  </button>
+                </div>
+                <div style={{fontSize:11, color:'#555'}}>
+                  프레임을 추가하면 현재 캔버스 내용이 저장되고, 새로운 빈 프레임으로 초기화됩니다.
+                </div>
+
+                {/* 예제 표정 */}
+                <div style={{marginTop:12}}>
+                  <div className="toolbar-section-title">예제 표정 불러오기</div>
+                  <div className="toolbar">
+                    {EXAMPLE_PRESETS.map(ex => (
+                      <button
+                        key={ex.id}
+                        className="small secondary"
+                        onClick={() => loadExamplePreset(ex)}
+                      >
+                        {ex.name}
+                      </button>
+                    ))}
+                  </div>
+                  <div style={{fontSize:11, color:'#666'}}>
+                    예제를 불러온 뒤 자유롭게 수정하거나, 프리셋으로 저장/ESP로 업로드할 수 있습니다.
+                  </div>
+                </div>
+              </div>
+
+              <div style={{flex:'1 1 auto', minWidth:260}}>
+                <div className="toolbar-section-title">프레임 목록</div>
+                <ul className="frame-list">
+                  {frames.length === 0 && (
+                    <li className="frame-item" style={{justifyContent:'center', color:'#777'}}>
+                      프레임이 아직 없습니다.
+                    </li>
+                  )}
+                  {frames.map((f, idx) => (
+                    <li
+                      key={idx}
+                      className={'frame-item ' + (activeFrameIndex === idx ? 'active' : '')}
+                      onClick={() => loadFrame(idx)}
+                    >
+                      <div style={{display:'flex', flexDirection:'column', gap:2}}>
+                        <span>
+                          프레임 {idx}
+                          <span className="badge">{f.delay} ms</span>
+                        </span>
+                        <span style={{fontSize:11, color:'#666'}}>클릭하면 편집</span>
+                        <div style={{marginTop:4}}>
+                          <button
+                            className="small secondary"
+                            disabled={idx === 0}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              moveFrameUp(idx);
+                            }}
+                          >
+                            ▲ 위로
+                          </button>
+                          <button
+                            className="small secondary"
+                            disabled={idx === frames.length - 1}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              moveFrameDown(idx);
+                            }}
+                          >
+                            ▼ 아래로
+                          </button>
+                          <button
+                            className="small secondary"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              duplicateFrame(idx);
+                            }}
+                          >
+                            복제
+                          </button>
+                          <button
+                            className="small secondary"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteFrame(idx);
+                            }}
+                          >
+                            삭제
+                          </button>
+                        </div>
+                      </div>
+                      <FrameThumbnail frame={f} />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* 프리셋 관리 */}
+            <div style={{marginTop:16, borderTop:'1px solid #f1dbe9', paddingTop:10}}>
+              <div className="toolbar-section-title">사용자 프리셋</div>
+              <div style={{display:'flex', flexWrap:'wrap', gap:12, marginBottom:8}}>
+                <div style={{minWidth:240}}>
+                  <div className="field">
+                    <label>프리셋 이름</label>
+                    <input
+                      type="text"
+                      placeholder="예: 웃는 얼굴, 졸린 표정..."
+                      value={presetName}
+                      onChange={(e) => setPresetName(e.target.value)}
+                    />
+                  </div>
+                  <button className="primary small" onClick={saveCurrentAsPreset}>
+                    현재 프레임 세트를 프리셋으로 저장
+                  </button>
+                </div>
+              </div>
+
+              <ul className="frame-list">
+                {presets.length === 0 && (
+                  <li className="frame-item" style={{justifyContent:'center', color:'#777'}}>
+                    저장된 프리셋이 없습니다.
+                  </li>
+                )}
+                {presets.map((p) => (
+                  <li key={p.id} className="frame-item">
+                    <div>
+                      <div>
+                        {p.name}
+                        <span className="badge">{p.frames.length} 프레임</span>
+                      </div>
+                      <div style={{fontSize:11, color:'#666'}}>
+                        {new Date(p.createdAt).toLocaleString()}
+                      </div>
+                    </div>
+                    <div>
+                      <button
+                        className="small secondary"
+                        onClick={() => loadPreset(p)}
+                      >
+                        불러오기
+                      </button>
+                      <button
+                        className="small secondary"
+                        onClick={() => deletePreset(p.id)}
+                      >
+                        삭제
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          {/* 업로드 & 코드 & 로그 카드 */}
+          <div className="card">
+            <h2 style={{marginBottom:8}}>ESP 업로드 & 코드 내보내기</h2>
+            <div style={{display:'flex', flexWrap:'wrap', gap:16}}>
+              <div style={{minWidth:220, flex:'0 0 260px'}}>
+                <div className="toolbar-section-title">표정 업로드 (시리얼)</div>
+                <div className="field">
+                  <label>표정 ID (0~7)</label>
+                  <input
+                    type="number"
+                    value={exprId}
+                    min={0}
+                    max={7}
+                    onChange={(e) => setExprId(e.target.value)}
+                  />
+                </div>
+                <button className="primary" onClick={uploadExpression}>
+                  현재 프레임 세트 → ESP32에 표정으로 저장
+                </button>
+                <div style={{fontSize:11, color:'#555', marginTop:6}}>
+                  같은 ID로 다시 업로드하면 덮어쓰기 됩니다.
+                  여러 ID(0,1,2…)에 업로드하면 ESP가 랜덤으로 골라 재생하도록 구현할 수 있어요.
+                </div>
+              </div>
+
+              <div style={{flex:'1 1 280px', minWidth:260}}>
+                <div className="toolbar-section-title">ESP 스케치용 C 코드 내보내기</div>
+                <div style={{fontSize:11, color:'#555', marginBottom:6}}>
+                  완성된 표정을 펌웨어에 직접 넣고 싶을 때 사용합니다.
+                  아래 버튼으로 C 배열 코드를 만들고, <code>// 표정 데이터 영역</code>에 붙여넣으면 돼요.
+                </div>
+                <div style={{display:'flex', gap:6, flexWrap:'wrap', marginBottom:6}}>
+                  <button className="secondary small" onClick={generateExportCode}>
+                    코드 생성하기
+                  </button>
+                  <button
+                    className="secondary small"
+                    onClick={copyExportCode}
+                    disabled={!exportCode}
+                  >
+                    클립보드로 복사
+                  </button>
+                  {copyStatus && (
+                    <span style={{fontSize:11, color:'#2f7a3d', alignSelf:'center'}}>
+                      {copyStatus}
+                    </span>
+                  )}
+                </div>
+                <textarea
+                  className="code-area"
+                  placeholder="// 여기 생성된 C 코드를 ESP32 스케치에 붙여넣으세요."
+                  value={exportCode}
+                  readOnly
+                />
+              </div>
+
+              <div style={{flex:'1 1 260px', minWidth:260}}>
+                <div className="toolbar-section-title">로그</div>
+                <div className="log">
+                  {logs.length === 0 ? '로그가 없습니다.' : logs.join('\n')}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
